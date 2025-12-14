@@ -47,6 +47,35 @@
       </div>
     </div>
 
+    <!-- Mode Toggle Bar (below connection bar when connected) -->
+    <div v-if="isConnected && isDeviceOnline" class="mode-bar">
+      <div class="mode-bar-content">
+        <span class="mode-label">Mode Kontrol:</span>
+        <div class="mode-toggle-inline">
+          <button 
+            @click="setMode('auto')" 
+            :class="['mode-btn-inline', { active: currentMode === 'auto' }]"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" width="14" height="14">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+            </svg>
+            Otomatis
+          </button>
+          <button 
+            @click="setMode('manual')" 
+            :class="['mode-btn-inline', { active: currentMode === 'manual' }]"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" width="14" height="14">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 11.5V14m0-2.5v-6a1.5 1.5 0 113 0m-3 6a1.5 1.5 0 00-3 0v2a7.5 7.5 0 0015 0v-5a1.5 1.5 0 00-3 0m-6-3V11m0-5.5v-1a1.5 1.5 0 013 0v1m0 0V11m0-5.5a1.5 1.5 0 013 0v3m0 0V11" />
+            </svg>
+            Manual
+          </button>
+        </div>
+        <span class="mode-status-text">{{ currentMode === 'auto' ? 'Kontrol otomatis aktif' : 'Kontrol manual aktif' }}</span>
+      </div>
+    </div>
+
     <!-- Waiting for Connection State -->
     <div v-if="!isConnected" class="waiting-state">
       <div class="waiting-card">
@@ -57,23 +86,6 @@
         </div>
         <h2>Menunggu Koneksi MQTT</h2>
         <p>Hubungkan ESP32 Jemuran Otomatis Anda untuk memulai monitoring.</p>
-        <div class="connection-steps">
-          <div class="step">
-            <span class="step-number">1</span>
-            <span>Upload kode ke ESP32</span>
-          </div>
-          <div class="step">
-            <span class="step-number">2</span>
-            <span>Pastikan ESP32 terhubung ke broker</span>
-          </div>
-          <div class="step">
-            <span class="step-number">3</span>
-            <span>Masukkan broker & topic yang sama</span>
-          </div>
-        </div>
-        <div class="info-box">
-          <strong>Default Topic:</strong> jemuran_otomatis/sensor/data
-        </div>
         <p v-if="connectionError" class="error-message">
           {{ connectionError }}
         </p>
@@ -83,7 +95,11 @@
     <!-- Device Offline Warning -->
     <div v-else-if="isConnected && !isDeviceOnline" class="device-offline-state">
       <div class="offline-card">
-        <div class="offline-icon">📡</div>
+        <div class="offline-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" width="48" height="48">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.111 16.404a5.5 5.5 0 017.778 0M12 20h.01m-7.08-7.071c3.904-3.905 10.236-3.905 14.141 0M1.394 9.393c5.857-5.857 15.355-5.857 21.213 0" />
+          </svg>
+        </div>
         <h2>Perangkat Offline</h2>
         <p>ESP32 tidak mengirim data. Pastikan perangkat menyala dan terhubung ke WiFi.</p>
         <div class="last-seen">
@@ -91,7 +107,7 @@
           <strong>{{ lastOnlineTime || 'Belum pernah' }}</strong>
         </div>
         <div class="tips">
-          <p>💡 Tips:</p>
+          <p class="tips-title"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" width="16" height="16" style="display:inline-block;vertical-align:middle;margin-right:4px;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" /></svg> Tips:</p>
           <ul>
             <li>Cek power supply ESP32</li>
             <li>Pastikan WiFi tersedia</li>
@@ -103,40 +119,6 @@
 
     <!-- Dashboard Grid (Only show when connected AND device online) -->
     <div v-else class="dashboard-grid">
-      <!-- Mode Control Card -->
-      <div class="card mode-card">
-        <div class="card-header">
-          <div class="card-icon">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-            </svg>
-          </div>
-          <span class="card-title">Mode Kontrol</span>
-        </div>
-        <div class="mode-toggle-container">
-          <div class="mode-toggle">
-            <button 
-              @click="setMode('auto')" 
-              :class="['mode-btn', { active: currentMode === 'auto' }]"
-            >
-              Otomatis
-            </button>
-            <button 
-              @click="setMode('manual')" 
-              :class="['mode-btn', { active: currentMode === 'manual' }]"
-            >
-              Manual
-            </button>
-          </div>
-          <p class="mode-description">
-            {{ currentMode === 'auto' 
-              ? 'Atap dikontrol otomatis berdasarkan cuaca' 
-              : 'Anda dapat mengontrol atap secara manual' }}
-          </p>
-        </div>
-      </div>
-
       <!-- Servo/Roof Control Card -->
       <div class="card servo-card" :class="{ disabled: currentMode === 'auto' }">
         <div class="card-header">
@@ -173,9 +155,6 @@
               Buka Atap
             </button>
           </div>
-          <p v-if="currentMode === 'auto'" class="servo-note">
-            Ganti ke mode Manual untuk mengontrol atap
-          </p>
         </div>
       </div>
 
@@ -193,35 +172,36 @@
         </div>
         <div class="dinamo-controls">
           <div class="dinamo-status-display" :class="dinamoStatusClass">
-            <span class="dinamo-icon-display">{{ dinamoIcon }}</span>
+            <span class="dinamo-icon-display">
+              <svg v-if="dinamoIcon === 'maju'" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" width="24" height="24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
+              <svg v-else-if="dinamoIcon === 'mundur'" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" width="24" height="24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg>
+              <svg v-else xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" width="24" height="24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 10a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1v-4z" /></svg>
+            </span>
             <span class="dinamo-text">{{ sensorData.dinamoStatus || 'STOP' }}</span>
           </div>
-          <div class="dinamo-buttons">
+          <div class="dinamo-buttons-row">
             <button 
               @click="setDinamo('mundur')" 
               class="dinamo-btn mundur"
               :disabled="currentMode === 'auto'"
             >
-              ⬅️ Mundur (Masuk)
-            </button>
-            <button 
-              @click="setDinamo('stop')" 
-              class="dinamo-btn stop"
-              :disabled="currentMode === 'auto'"
-            >
-              ⏹️ Stop
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" width="16" height="16" style="display:inline-block;vertical-align:middle;margin-right:4px;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg> Mundur
             </button>
             <button 
               @click="setDinamo('maju')" 
               class="dinamo-btn maju"
               :disabled="currentMode === 'auto'"
             >
-              Maju (Keluar) ➡️
+              Maju <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" width="16" height="16" style="display:inline-block;vertical-align:middle;margin-left:4px;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
             </button>
           </div>
-          <p v-if="currentMode === 'auto'" class="servo-note">
-            Ganti ke mode Manual untuk mengontrol dinamo
-          </p>
+          <button 
+            @click="setDinamo('stop')" 
+            class="dinamo-btn stop full-width"
+            :disabled="currentMode === 'auto'"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" width="16" height="16" style="display:inline-block;vertical-align:middle;margin-right:4px;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 10a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1v-4z" /></svg> Stop
+          </button>
         </div>
       </div>
 
@@ -237,7 +217,13 @@
         </div>
         <div class="sensor-display">
           <div class="sensor-icon-large">
-            {{ sensorData.isRaining ? '🌧️' : '☀️' }}
+            <svg v-if="sensorData.isRaining" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" width="48" height="48">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 15a4 4 0 004 4h9a5 5 0 10-.1-9.999 5.002 5.002 0 10-9.78 2.096A4.001 4.001 0 003 15z" />
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 19v2m4-2v2m4-2v2" />
+            </svg>
+            <svg v-else xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" width="48" height="48">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+            </svg>
           </div>
           <div class="sensor-value" :class="sensorData.isRaining ? 'danger' : 'safe'">
             {{ sensorData.isRaining ? 'HUJAN' : 'CERAH' }}
@@ -261,7 +247,12 @@
         </div>
         <div class="sensor-display">
           <div class="sensor-icon-large">
-            {{ sensorData.isDark ? '🌙' : '☀️' }}
+            <svg v-if="sensorData.isDark" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" width="48" height="48">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+            </svg>
+            <svg v-else xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" width="48" height="48">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+            </svg>
           </div>
           <div class="sensor-value" :class="sensorData.isDark ? 'warning' : 'safe'">
             {{ sensorData.isDark ? 'GELAP' : 'TERANG' }}
@@ -284,7 +275,11 @@
           <span class="card-title">Suhu (DHT11)</span>
         </div>
         <div class="sensor-display">
-          <div class="sensor-icon-large">🌡️</div>
+          <div class="sensor-icon-large">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" width="48" height="48">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+            </svg>
+          </div>
           <div class="sensor-value-large" :class="temperatureClass">
             {{ sensorData.temperature.toFixed(1) }}°C
           </div>
@@ -306,7 +301,11 @@
           <span class="card-title">Kelembaban</span>
         </div>
         <div class="sensor-display">
-          <div class="sensor-icon-large">💧</div>
+          <div class="sensor-icon-large">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" width="48" height="48">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3c-1.5 3-4 6-4 9a4 4 0 108 0c0-3-2.5-6-4-9z" />
+            </svg>
+          </div>
           <div class="sensor-value-large" :class="humidityClass">
             {{ sensorData.humidity.toFixed(0) }}%
           </div>
@@ -340,23 +339,7 @@
         </div>
       </div>
 
-      <!-- Safety Status Card -->
-      <div class="card status-card safety-card">
-        <div class="card-header">
-          <div class="card-icon safety-icon">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-            </svg>
-          </div>
-          <span class="card-title">Status Keamanan</span>
-        </div>
-        <div :class="['status-badge', safetyStatusType]">
-          <span>{{ safetyText }}</span>
-        </div>
-        <p class="status-description">{{ safetyDescription }}</p>
-      </div>
-
-      <!-- Weather Condition Card -->
+      <!-- Weather Condition Card (with Safety Status) -->
       <div class="card weather-card">
         <div class="card-header">
           <div class="card-icon weather-icon-header">
@@ -368,13 +351,30 @@
         </div>
         <div class="weather-display">
           <div class="weather-icons">
-            <span class="weather-icon" :class="{ active: sensorData.isRaining }">🌧️</span>
-            <span class="weather-icon" :class="{ active: !sensorData.isRaining && !sensorData.isDark }">☀️</span>
-            <span class="weather-icon" :class="{ active: sensorData.isDark }">🌙</span>
+            <span class="weather-icon" :class="{ active: sensorData.isRaining }">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" width="24" height="24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 15a4 4 0 004 4h9a5 5 0 10-.1-9.999 5.002 5.002 0 10-9.78 2.096A4.001 4.001 0 003 15z" />
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 19v2m4-2v2m4-2v2" />
+              </svg>
+            </span>
+            <span class="weather-icon" :class="{ active: !sensorData.isRaining && !sensorData.isDark }">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" width="24" height="24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+              </svg>
+            </span>
+            <span class="weather-icon" :class="{ active: sensorData.isDark }">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" width="24" height="24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+              </svg>
+            </span>
           </div>
           <div class="weather-text">
-            {{ sensorData.isRaining ? 'Sedang Hujan 🌧️' : (sensorData.isDark ? 'Malam Hari 🌙' : 'Cerah Terang ☀️') }}
+            {{ sensorData.isRaining ? 'Sedang Hujan' : (sensorData.isDark ? 'Malam Hari' : 'Cerah Terang') }}
           </div>
+          <div :class="['weather-status-badge', safetyStatusType]">
+            {{ safetyText }}
+          </div>
+          <p class="weather-status-desc">{{ safetyDescription }}</p>
         </div>
       </div>
 
@@ -723,9 +723,9 @@ const dinamoStatusClass = computed(() => {
 
 const dinamoIcon = computed(() => {
   const status = sensorData.value.dinamoStatus
-  if (status === 'MAJU') return '➡️'
-  if (status === 'MUNDUR') return '⬅️'
-  return '⏹️'
+  if (status === 'MAJU') return 'maju'
+  if (status === 'MUNDUR') return 'mundur'
+  return 'stop'
 })
 
 // Add to history
